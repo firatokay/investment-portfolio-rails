@@ -1,7 +1,7 @@
 class PortfoliosController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_portfolio, only: [:show, :edit, :update, :destroy]
-  before_action :authorize_user!, only: [:show, :edit, :update, :destroy]
+  before_action :set_portfolio, only: [ :show, :edit, :update, :destroy ]
+  before_action :authorize_user!, only: [ :show, :edit, :update, :destroy ]
 
   def index
     @portfolios = current_user.portfolios.order(created_at: :desc)
