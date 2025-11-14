@@ -1,17 +1,69 @@
 {
   "RSpec": {
     "coverage": {
+      "/Users/firatokay/investment-portfolio-rails/app/helpers/application_helper.rb": {
+        "lines": [
+          1,
+          null
+        ]
+      },
+      "/Users/firatokay/investment-portfolio-rails/app/helpers/home_helper.rb": {
+        "lines": [
+          1,
+          null
+        ]
+      },
+      "/Users/firatokay/investment-portfolio-rails/app/models/user.rb": {
+        "lines": [
+          1,
+          null,
+          null,
+          1,
+          null,
+          null,
+          null,
+          1,
+          null,
+          null,
+          1,
+          null,
+          null,
+          1,
+          4,
+          null,
+          null
+        ]
+      },
+      "/Users/firatokay/investment-portfolio-rails/app/models/application_record.rb": {
+        "lines": [
+          1,
+          1,
+          null
+        ]
+      },
       "/Users/firatokay/investment-portfolio-rails/app/controllers/application_controller.rb": {
         "lines": [
           0,
           null,
           0,
+          null,
+          null,
+          0,
+          null,
+          0,
+          null,
+          0,
+          0,
+          0,
+          0,
           0
         ],
         "branches": {}
       },
-      "/Users/firatokay/investment-portfolio-rails/app/helpers/application_helper.rb": {
+      "/Users/firatokay/investment-portfolio-rails/app/controllers/home_controller.rb": {
         "lines": [
+          0,
+          0,
           0,
           0
         ],
@@ -37,16 +89,8 @@
           0
         ],
         "branches": {}
-      },
-      "/Users/firatokay/investment-portfolio-rails/app/models/application_record.rb": {
-        "lines": [
-          0,
-          0,
-          0
-        ],
-        "branches": {}
       }
     },
-    "timestamp": 1763056565
+    "timestamp": 1763142178
   }
 }

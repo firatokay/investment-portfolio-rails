@@ -1,0 +1,19 @@
+<div class="w-full">
+  <div class="text-center">
+    <h1 class="font-bold text-4xl mb-4">Investment Portfolio Management</h1>
+    <p class="text-xl text-gray-600 mb-8">Track your investments, monitor performance, and visualize your portfolio data.</p>
+
+    <% if user_signed_in? %>
+      <div class="space-x-4">
+        <p class="text-lg mb-4">Welcome back, <%= current_user.full_name %>!</p>
+        <%= link_to "My Account", edit_user_registration_path, class: "bg-indigo-600 text-white rounded-md px-6 py-3 hover:bg-indigo-700 inline-block" %>
+        <%= button_to "Sign Out", destroy_user_session_path, method: :delete, class: "bg-gray-600 text-white rounded-md px-6 py-3 hover:bg-gray-700 inline-block" %>
+      </div>
+    <% else %>
+      <div class="space-x-4">
+        <%= link_to "Sign Up", new_user_registration_path, class: "bg-indigo-600 text-white rounded-md px-6 py-3 hover:bg-indigo-700 inline-block" %>
+        <%= link_to "Log In", new_user_session_path, class: "bg-gray-600 text-white rounded-md px-6 py-3 hover:bg-gray-700 inline-block" %>
+      </div>
+    <% end %>
+  </div>
+</div>
