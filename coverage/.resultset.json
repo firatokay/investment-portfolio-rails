@@ -13,6 +13,30 @@
           null
         ]
       },
+      "/Users/firatokay/investment-portfolio-rails/app/helpers/portfolios_helper.rb": {
+        "lines": [
+          1,
+          null
+        ]
+      },
+      "/Users/firatokay/investment-portfolio-rails/app/models/portfolio.rb": {
+        "lines": [
+          1,
+          1,
+          1,
+          null,
+          1,
+          1,
+          null
+        ]
+      },
+      "/Users/firatokay/investment-portfolio-rails/app/models/application_record.rb": {
+        "lines": [
+          1,
+          1,
+          null
+        ]
+      },
       "/Users/firatokay/investment-portfolio-rails/app/models/user.rb": {
         "lines": [
           1,
@@ -31,13 +55,6 @@
           1,
           4,
           null,
-          null
-        ]
-      },
-      "/Users/firatokay/investment-portfolio-rails/app/models/application_record.rb": {
-        "lines": [
-          1,
-          1,
           null
         ]
       },
@@ -69,6 +86,71 @@
         ],
         "branches": {}
       },
+      "/Users/firatokay/investment-portfolio-rails/app/controllers/portfolios_controller.rb": {
+        "lines": [
+          0,
+          0,
+          0,
+          0,
+          null,
+          0,
+          0,
+          0,
+          null,
+          0,
+          null,
+          0,
+          null,
+          0,
+          0,
+          0,
+          null,
+          0,
+          0,
+          null,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          null,
+          0,
+          null,
+          0,
+          null,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          null,
+          0,
+          0,
+          0,
+          0,
+          null,
+          0,
+          null,
+          0,
+          0,
+          0,
+          null,
+          0,
+          0,
+          0,
+          0,
+          0,
+          null,
+          0,
+          0,
+          0,
+          0
+        ],
+        "branches": {}
+      },
       "/Users/firatokay/investment-portfolio-rails/app/jobs/application_job.rb": {
         "lines": [
           0,
@@ -91,6 +173,6 @@
         "branches": {}
       }
     },
-    "timestamp": 1763142178
+    "timestamp": 1763143445
   }
 }

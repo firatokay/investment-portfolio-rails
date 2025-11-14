@@ -28,9 +28,16 @@
       <div class="container mx-auto px-5">
         <div class="flex justify-between items-center h-16">
           <!-- Logo/Brand -->
-          <div class="flex-shrink-0">
+          <div class="flex items-center space-x-8">
             <%= link_to root_path, class: "text-xl font-bold text-indigo-600" do %>
               Investment Portfolio
+            <% end %>
+
+            <!-- Main Navigation (logged in users only) -->
+            <% if user_signed_in? %>
+              <div class="flex space-x-6">
+                <%= link_to "Portfolios", portfolios_path, class: "text-sm font-medium text-gray-700 hover:text-indigo-600" %>
+              </div>
             <% end %>
           </div>
 

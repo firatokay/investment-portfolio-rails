@@ -1,0 +1,55 @@
+<div class="max-w-6xl mx-auto">
+  <!-- Portfolio Header -->
+  <div class="bg-white rounded-lg shadow-md p-8 mb-6">
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <h1 class="font-bold text-3xl text-gray-900 mb-2"><%= @portfolio.name %></h1>
+        <p class="text-gray-600"><%= @portfolio.description.presence || "No description provided" %></p>
+      </div>
+      <div class="flex space-x-3">
+        <%= link_to "Edit", edit_portfolio_path(@portfolio), class: "bg-gray-200 text-gray-700 rounded-md px-4 py-2 hover:bg-gray-300 font-medium" %>
+        <%= link_to "Back", portfolios_path, class: "bg-indigo-600 text-white rounded-md px-4 py-2 hover:bg-indigo-700 font-medium" %>
+      </div>
+    </div>
+
+    <div class="border-t border-gray-200 pt-4 mt-4">
+      <p class="text-sm text-gray-500">Created <%= time_ago_in_words(@portfolio.created_at) %> ago</p>
+    </div>
+  </div>
+
+  <!-- Portfolio Stats -->
+  <div class="grid md:grid-cols-3 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h3 class="text-sm font-medium text-gray-500 mb-2">Holdings</h3>
+      <p class="text-3xl font-bold text-indigo-600">0</p>
+      <p class="text-xs text-gray-500 mt-1">No stocks added yet</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h3 class="text-sm font-medium text-gray-500 mb-2">Total Value</h3>
+      <p class="text-3xl font-bold text-green-600">$0.00</p>
+      <p class="text-xs text-gray-500 mt-1">Add holdings to see value</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h3 class="text-sm font-medium text-gray-500 mb-2">Performance</h3>
+      <p class="text-3xl font-bold text-blue-600">-</p>
+      <p class="text-xs text-gray-500 mt-1">Track your returns</p>
+    </div>
+  </div>
+
+  <!-- Holdings Section -->
+  <div class="bg-white rounded-lg shadow-md p-8">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-semibold text-gray-900">Holdings</h2>
+      <button class="bg-indigo-600 text-white rounded-md px-4 py-2 hover:bg-indigo-700 font-medium" disabled>
+        Add Holding (Phase 3)
+      </button>
+    </div>
+
+    <div class="text-center py-12">
+      <div class="text-6xl mb-4">📈</div>
+      <h3 class="text-xl font-semibold text-gray-900 mb-2">No Holdings Yet</h3>
+      <p class="text-gray-600 mb-4">Holdings will be added in Phase 3</p>
+      <p class="text-sm text-gray-500">This feature will allow you to add stocks, track prices, and monitor performance.</p>
+    </div>
+  </div>
+</div>
