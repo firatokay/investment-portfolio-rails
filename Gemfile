@@ -59,6 +59,9 @@ gem "redis"
 gem "httparty"
 gem "faraday"
 
+# AI Integration
+gem "anthropic"
+
 # Serialization
 gem "active_model_serializers"
 

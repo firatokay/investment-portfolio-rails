@@ -1,7 +1,7 @@
 class PortfoliosController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_portfolio, only: [ :show, :edit, :update, :destroy ]
-  before_action :authorize_user!, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_portfolio, only: [ :show, :edit, :update, :destroy, :ai_advisor ]
+  before_action :authorize_user!, only: [ :show, :edit, :update, :destroy, :ai_advisor ]
 
   def index
     @portfolios = current_user.portfolios.order(created_at: :desc)
@@ -40,6 +40,24 @@ class PortfoliosController < ApplicationController
   def destroy
     @portfolio.destroy
     redirect_to portfolios_url, notice: "Portfolio was successfully deleted."
+  end
+
+  def ai_advisor
+    advisor = AI::PortfolioAdvisor.new(@portfolio)
+    result = advisor.generate_recommendations
+
+    if result[:success]
+      render json: {
+        success: true,
+        analysis: result[:analysis],
+        generated_at: result[:generated_at]
+      }
+    else
+      render json: {
+        success: false,
+        error: result[:error]
+      }, status: :unprocessable_entity
+    end
   end
 
   private

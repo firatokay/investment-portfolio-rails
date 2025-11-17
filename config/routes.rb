@@ -6,6 +6,9 @@ Rails.application.routes.draw do
 
   # Portfolio resources
   resources :portfolios do
+    member do
+      post :ai_advisor
+    end
     resources :positions do
       collection do
         get :price_for_date
