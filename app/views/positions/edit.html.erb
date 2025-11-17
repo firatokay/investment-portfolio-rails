@@ -1,0 +1,18 @@
+<div class="max-w-2xl mx-auto">
+  <div class="mb-8">
+    <h1 class="font-bold text-3xl text-gray-900">Edit Position</h1>
+    <p class="text-gray-600 mt-2">Update <%= @position.asset.symbol %> position in <%= @portfolio.name %></p>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-md p-8">
+    <%= render "form", portfolio: @portfolio, position: @position %>
+  </div>
+
+  <div class="mt-6 pt-6 border-t border-gray-200">
+    <%= button_to "Delete Position",
+        portfolio_position_path(@portfolio, @position),
+        method: :delete,
+        data: { confirm: "Are you sure? This will permanently delete this position and all its transactions.", turbo_confirm: "Are you sure? This will permanently delete this position and all its transactions." },
+        class: "w-full bg-red-600 text-white rounded-md px-6 py-3 hover:bg-red-700 font-semibold" %>
+  </div>
+</div>

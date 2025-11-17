@@ -1,0 +1,229 @@
+<%= form_with(model: [portfolio, position], local: true) do |form| %>
+  <% if position.errors.any? %>
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+      <h3 class="font-bold"><%=pluralize(position.errors.count, "error") %> prohibited this position from being saved:</h3>
+      <ul class="list-disc list-inside">
+        <% position.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="space-y-6">
+    <!-- Asset Type Selection -->
+    <div>
+      <%= form.label :asset_type_filter, "Asset Type", class: "block text-sm font-medium text-gray-700 mb-2" %>
+      <select id="asset_type_filter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+        <option value="">Select asset type...</option>
+        <option value="stock-bist">Turkish Stocks (BIST)</option>
+        <option value="stock-us">US Stocks (NYSE/NASDAQ)</option>
+        <option value="etf">ETFs</option>
+        <option value="precious_metal">Precious Metals</option>
+        <option value="forex">Forex (Currency Pairs)</option>
+        <option value="cryptocurrency">Cryptocurrencies</option>
+      </select>
+    </div>
+
+    <!-- Asset Selection (will be populated based on type) -->
+    <div>
+      <%= form.label :asset_id, "Asset", class: "block text-sm font-medium text-gray-700 mb-2" %>
+      <%= form.select :asset_id,
+          options_for_select(
+            @assets.map { |asset| ["#{asset.symbol} - #{asset.name}", asset.id, {
+              'data-asset-type' => asset.asset_class,
+              'data-exchange' => asset.exchange,
+              'data-asset-id' => asset.id,
+              'data-symbol' => asset.symbol,
+              'data-currency' => asset.currency
+            }] },
+            position.asset_id
+          ),
+          { prompt: "First select an asset type above..." },
+          class: "w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500",
+          id: "asset_select"
+      %>
+    </div>
+
+    <!-- Purchase Date -->
+    <div>
+      <%= form.label :purchase_date, "Purchase Date", class: "block text-sm font-medium text-gray-700 mb-2" %>
+      <%= form.date_field :purchase_date,
+          id: "purchase_date_field",
+          max: Date.today.strftime('%Y-%m-%d'),
+          class: "w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
+      <p class="mt-1 text-xs text-gray-500">The price will be auto-filled based on this date</p>
+    </div>
+
+    <!-- Quantity and Average Cost Row -->
+    <div class="grid grid-cols-2 gap-4">
+      <!-- Quantity -->
+      <div>
+        <%= form.label :quantity, "Quantity", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.number_field :quantity,
+            step: "0.00000001",
+            class: "w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500",
+            placeholder: "e.g., 100" %>
+        <p class="mt-1 text-xs text-gray-500">Use decimals for precious metals (e.g., 5.5 troy oz)</p>
+      </div>
+
+      <!-- Average Cost -->
+      <div>
+        <%= form.label :average_cost, "Average Cost (per unit)", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <div class="relative">
+          <%= form.number_field :average_cost,
+              step: "0.0001",
+              id: "average_cost_field",
+              class: "w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500",
+              placeholder: "e.g., 200.00" %>
+          <div id="price_loading" class="hidden absolute right-2 top-2">
+            <svg class="animate-spin h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+        </div>
+        <p class="mt-1 text-xs text-gray-500" id="price_status">Will auto-fill when asset and date are selected</p>
+      </div>
+    </div>
+
+    <!-- Purchase Currency -->
+    <div>
+      <%= form.label :purchase_currency, "Purchase Currency", class: "block text-sm font-medium text-gray-700 mb-2" %>
+      <%= form.select :purchase_currency,
+          options_for_select(
+            [["Turkish Lira (TRY)", "TRY"], ["US Dollar (USD)", "USD"], ["Euro (EUR)", "EUR"]],
+            position.purchase_currency || "TRY"
+          ),
+          {},
+          class: "w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+      %>
+    </div>
+
+    <!-- Notes -->
+    <div>
+      <%= form.label :notes, "Notes (optional)", class: "block text-sm font-medium text-gray-700 mb-2" %>
+      <%= form.text_area :notes,
+          rows: 3,
+          class: "w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500",
+          placeholder: "Add any notes about this position..." %>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+      <%= link_to "Cancel", portfolio_path(portfolio), class: "text-gray-600 hover:text-gray-800" %>
+      <%= form.submit class: "bg-indigo-600 text-white rounded-md px-6 py-2 hover:bg-indigo-700 font-medium cursor-pointer" %>
+    </div>
+  </div>
+<% end %>
+
+<script>
+(function() {
+  const assetTypeFilter = document.getElementById('asset_type_filter');
+  const assetSelect = document.getElementById('asset_select');
+  const purchaseDateField = document.getElementById('purchase_date_field');
+  const averageCostField = document.getElementById('average_cost_field');
+  const priceLoading = document.getElementById('price_loading');
+  const priceStatus = document.getElementById('price_status');
+
+  // Store all asset options
+  const allAssetOptions = Array.from(assetSelect.options).slice(1); // Skip the prompt option
+
+  // Filter assets based on type selection
+  assetTypeFilter.addEventListener('change', function() {
+    const selectedType = this.value;
+
+    // Clear current options except prompt
+    assetSelect.innerHTML = '<option value="">Select an asset...</option>';
+
+    if (!selectedType) {
+      assetSelect.innerHTML = '<option value="">First select an asset type above...</option>';
+      return;
+    }
+
+    // Filter and add matching options
+    allAssetOptions.forEach(option => {
+      const assetType = option.getAttribute('data-asset-type');
+      const exchange = option.getAttribute('data-exchange');
+
+      let matches = false;
+
+      if (selectedType === 'stock-bist' && assetType === 'stock' && exchange === 'bist') {
+        matches = true;
+      } else if (selectedType === 'stock-us' && assetType === 'stock' && (exchange === 'nyse' || exchange === 'nasdaq')) {
+        matches = true;
+      } else if (selectedType === 'etf' && assetType === 'etf') {
+        matches = true;
+      } else if (selectedType === assetType) {
+        matches = true;
+      }
+
+      if (matches) {
+        assetSelect.appendChild(option.cloneNode(true));
+      }
+    });
+
+    if (assetSelect.options.length === 1) {
+      assetSelect.innerHTML = '<option value="">No assets available for this type</option>';
+    }
+  });
+
+  // Auto-populate price when asset and date are selected
+  function fetchPriceForDate() {
+    const assetId = assetSelect.value;
+    const purchaseDate = purchaseDateField.value;
+
+    if (!assetId || !purchaseDate) {
+      return;
+    }
+
+    // Show loading indicator
+    priceLoading.classList.remove('hidden');
+    priceStatus.textContent = 'Fetching price for ' + purchaseDate + '...';
+    priceStatus.classList.remove('text-red-500', 'text-green-600');
+    priceStatus.classList.add('text-gray-500');
+
+    // Fetch price from API
+    fetch(`/portfolios/<%= portfolio.id %>/positions/price_for_date?asset_id=${assetId}&date=${purchaseDate}`)
+      .then(response => response.json())
+      .then(data => {
+        priceLoading.classList.add('hidden');
+
+        if (data.price) {
+          averageCostField.value = data.price;
+          priceStatus.textContent = 'Price auto-filled: ' + data.price + ' ' + data.currency + ' (from historical data)';
+          priceStatus.classList.remove('text-gray-500', 'text-red-500');
+          priceStatus.classList.add('text-green-600');
+        } else if (data.error) {
+          priceStatus.textContent = data.error + ' - Please enter manually';
+          priceStatus.classList.remove('text-gray-500', 'text-green-600');
+          priceStatus.classList.add('text-red-500');
+        }
+      })
+      .catch(error => {
+        priceLoading.classList.add('hidden');
+        priceStatus.textContent = 'Could not fetch price - Please enter manually';
+        priceStatus.classList.remove('text-gray-500', 'text-green-600');
+        priceStatus.classList.add('text-red-500');
+        console.error('Error fetching price:', error);
+      });
+  }
+
+  // Trigger price fetch when asset or date changes
+  assetSelect.addEventListener('change', fetchPriceForDate);
+  purchaseDateField.addEventListener('change', fetchPriceForDate);
+
+  // Also update purchase currency based on selected asset
+  assetSelect.addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const currency = selectedOption.getAttribute('data-currency');
+
+    if (currency) {
+      const purchaseCurrencySelect = document.getElementById('position_purchase_currency');
+      if (purchaseCurrencySelect) {
+        purchaseCurrencySelect.value = currency;
+      }
+    }
+  });
+})();
+</script>

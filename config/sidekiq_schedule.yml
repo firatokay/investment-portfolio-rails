@@ -1,0 +1,67 @@
+# Sidekiq Scheduler Configuration
+# Update market data on a regular schedule
+#
+# Schedule formats:
+# - Cron: '0 * * * *' (every hour at minute 0)
+# - Every: '1h' (every hour)
+#
+# Choose one of the schedules below by uncommenting
+
+# ==========================================
+# OPTION 1: DAILY UPDATES (Recommended for free API tier)
+# ==========================================
+# Updates exchange rates once per day at 9 AM
+# Updates position prices once per day at 9:30 AM
+
+update_exchange_rates_daily:
+  cron: '0 9 * * *'  # Every day at 9:00 AM
+  class: MarketDataUpdateWorker
+  args: ['exchange_rates']
+  queue: default
+  description: 'Update exchange rates daily'
+
+update_position_prices_daily:
+  cron: '30 9 * * *'  # Every day at 9:30 AM
+  class: MarketDataUpdateWorker
+  args: ['position_prices']
+  queue: default
+  description: 'Update position prices daily'
+
+# ==========================================
+# OPTION 2: HOURLY UPDATES (Uncomment to use)
+# ==========================================
+# WARNING: This will consume more API credits!
+# Only use if you have a paid API plan
+
+# update_exchange_rates_hourly:
+#   cron: '0 * * * *'  # Every hour at minute 0
+#   class: MarketDataUpdateWorker
+#   args: ['exchange_rates']
+#   queue: default
+#   description: 'Update exchange rates hourly'
+
+# update_position_prices_hourly:
+#   cron: '30 * * * *'  # Every hour at minute 30
+#   class: MarketDataUpdateWorker
+#   args: ['position_prices']
+#   queue: default
+#   description: 'Update position prices hourly'
+
+# ==========================================
+# OPTION 3: CUSTOM SCHEDULE
+# ==========================================
+# Update every 4 hours as a middle ground
+
+# update_exchange_rates_4hours:
+#   cron: '0 */4 * * *'  # Every 4 hours
+#   class: MarketDataUpdateWorker
+#   args: ['exchange_rates']
+#   queue: default
+#   description: 'Update exchange rates every 4 hours'
+
+# update_position_prices_4hours:
+#   cron: '30 */4 * * *'  # Every 4 hours, offset by 30 minutes
+#   class: MarketDataUpdateWorker
+#   args: ['position_prices']
+#   queue: default
+#   description: 'Update position prices every 4 hours'

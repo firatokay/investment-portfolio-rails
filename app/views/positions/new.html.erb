@@ -1,0 +1,10 @@
+<div class="max-w-2xl mx-auto">
+  <div class="mb-8">
+    <h1 class="font-bold text-3xl text-gray-900">Add Position</h1>
+    <p class="text-gray-600 mt-2">Add a new asset to <%= @portfolio.name %></p>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-md p-8">
+    <%= render "form", portfolio: @portfolio, position: @position %>
+  </div>
+</div>

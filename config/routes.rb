@@ -5,7 +5,16 @@ Rails.application.routes.draw do
   root "home#index"
 
   # Portfolio resources
-  resources :portfolios
+  resources :portfolios do
+    resources :positions do
+      collection do
+        get :price_for_date
+      end
+      member do
+        get :progress
+      end
+    end
+  end
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

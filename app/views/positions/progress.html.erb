@@ -1,0 +1,413 @@
+<%= turbo_frame_tag "progress_modal" do %>
+  <!-- Modal Backdrop -->
+  <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-40" data-controller="modal" data-action="click->modal#close"></div>
+
+  <!-- Modal Content -->
+  <div class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex min-h-full items-center justify-center p-4">
+      <div class="relative transform overflow-hidden rounded-lg bg-white shadow-xl transition-all w-full max-w-6xl">
+
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-2xl font-bold text-white">
+                <%= @price_data[:position][:asset_symbol] %> - Position Progress
+              </h3>
+              <p class="text-sm text-indigo-100 mt-1">
+                <%= @price_data[:position][:asset_name] %>
+              </p>
+            </div>
+            <%= link_to portfolio_path(@portfolio), data: { turbo_frame: "_top" }, class: "text-white hover:text-gray-200" do %>
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="px-6 py-6">
+
+          <!-- Position Summary Cards -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <p class="text-xs text-gray-600 mb-1">Quantity</p>
+              <p class="text-lg font-bold text-blue-700">
+                <%= number_with_precision(@price_data[:position][:quantity], precision: 4, strip_insignificant_zeros: true) %>
+              </p>
+            </div>
+
+            <div class="bg-purple-50 rounded-lg p-4 border border-purple-200">
+              <p class="text-xs text-gray-600 mb-1">Avg Cost</p>
+              <p class="text-lg font-bold text-purple-700">
+                <%= number_to_currency(@price_data[:position][:average_cost], unit: "#{@price_data[:position][:purchase_currency]} ") %>
+              </p>
+            </div>
+
+            <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+              <p class="text-xs text-gray-600 mb-1">Current Value</p>
+              <p class="text-lg font-bold text-green-700">
+                <%= number_to_currency(@price_data[:position][:current_value], unit: "#{@price_data[:currency]} ") %>
+              </p>
+            </div>
+
+            <div class="<%= @price_data[:position][:profit_loss] >= 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200' %> rounded-lg p-4 border">
+              <p class="text-xs text-gray-600 mb-1">Total P&L</p>
+              <p class="text-lg font-bold <%= @price_data[:position][:profit_loss] >= 0 ? 'text-green-700' : 'text-red-700' %>">
+                <%= @price_data[:position][:profit_loss] >= 0 ? '+' : '' %><%= number_to_currency(@price_data[:position][:profit_loss], unit: "") %>
+                <span class="text-sm">(<%= @price_data[:position][:profit_loss_percentage] >= 0 ? '+' : '' %><%= @price_data[:position][:profit_loss_percentage] %>%)</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Time Range Selector -->
+          <div class="bg-white rounded-lg p-4 border border-gray-300 mb-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <!-- Preset Buttons -->
+              <div class="flex flex-wrap gap-2">
+                <span class="text-sm font-medium text-gray-700 mr-2 self-center">Time Range:</span>
+                <button onclick="updateDateRange('1M')" class="px-3 py-1 text-xs font-medium rounded-md bg-gray-100 hover:bg-indigo-100 hover:text-indigo-700 transition">1M</button>
+                <button onclick="updateDateRange('3M')" class="px-3 py-1 text-xs font-medium rounded-md bg-gray-100 hover:bg-indigo-100 hover:text-indigo-700 transition">3M</button>
+                <button onclick="updateDateRange('6M')" class="px-3 py-1 text-xs font-medium rounded-md bg-gray-100 hover:bg-indigo-100 hover:text-indigo-700 transition">6M</button>
+                <button onclick="updateDateRange('1Y')" class="px-3 py-1 text-xs font-medium rounded-md bg-gray-100 hover:bg-indigo-100 hover:text-indigo-700 transition">1Y</button>
+                <button onclick="updateDateRange('ALL')" class="px-3 py-1 text-xs font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition">All</button>
+              </div>
+
+              <!-- Custom Date Range -->
+              <div class="flex items-center gap-2">
+                <label class="text-xs font-medium text-gray-700">From:</label>
+                <input type="date"
+                       id="startDate"
+                       value="<%= @price_data[:position][:purchase_date] %>"
+                       min="<%= @price_data[:position][:purchase_date] %>"
+                       max="<%= Date.today.strftime('%Y-%m-%d') %>"
+                       onchange="updateCustomDateRange()"
+                       class="px-2 py-1 text-xs border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+
+                <label class="text-xs font-medium text-gray-700">To:</label>
+                <input type="date"
+                       id="endDate"
+                       value="<%= Date.today.strftime('%Y-%m-%d') %>"
+                       min="<%= @price_data[:position][:purchase_date] %>"
+                       max="<%= Date.today.strftime('%Y-%m-%d') %>"
+                       onchange="updateCustomDateRange()"
+                       class="px-2 py-1 text-xs border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+              </div>
+            </div>
+
+            <!-- Date Range Info -->
+            <div class="mt-2 text-xs text-gray-600">
+              <span id="dateRangeInfo">
+                Showing <%= @price_data[:data_points].length %> data points from
+                <%= Date.parse(@price_data[:position][:purchase_date]).strftime('%B %d, %Y') %> to
+                <%= Date.today.strftime('%B %d, %Y') %>
+              </span>
+            </div>
+          </div>
+
+          <!-- Chart Container -->
+          <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
+            <canvas id="progressChart" height="100"></canvas>
+          </div>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="bg-gray-50 px-6 py-4">
+          <div class="flex justify-end">
+            <%= link_to "Close", portfolio_path(@portfolio), data: { turbo_frame: "_top" }, class: "bg-gray-200 text-gray-700 rounded-md px-6 py-2 hover:bg-gray-300 font-medium" %>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Initialize Chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    (function() {
+      const ctx = document.getElementById('progressChart');
+      if (!ctx) return;
+
+      const fullData = <%= raw @price_data.to_json %>;
+      let chartInstance = null;
+
+      // Helper function to filter data by date range
+      function filterDataByDateRange(startDate, endDate) {
+        // Normalize dates to midnight UTC to avoid timezone issues
+        const startDateNorm = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+        const endDateNorm = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+
+        const filtered = fullData.data_points.filter(point => {
+          // Parse the date string (YYYY-MM-DD) and create a date at midnight local time
+          const parts = point.date.split('-');
+          const pointDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+
+          return pointDate >= startDateNorm && pointDate <= endDateNorm;
+        });
+        return filtered;
+      }
+
+      // Helper function to format date for display
+      function formatDate(date) {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return date.toLocaleDateString(undefined, options);
+      }
+
+      // Helper function to update the info text
+      function updateDateRangeInfo(startDate, endDate, dataPointCount) {
+        const infoElement = document.getElementById('dateRangeInfo');
+        if (infoElement) {
+          infoElement.textContent = 'Showing ' + dataPointCount + ' data points from ' +
+            formatDate(startDate) + ' to ' + formatDate(endDate);
+        }
+      }
+
+      // Create or update chart with filtered data
+      function updateChart(filteredData) {
+        const labels = filteredData.map(point => point.date);
+        const values = filteredData.map(point => point.value);
+        const costBasis = filteredData.map(point => point.cost_basis);
+        const profitLoss = filteredData.map(point => point.profit_loss);
+
+        const chartData = {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Position Value (' + fullData.currency + ')',
+              data: values,
+              borderColor: 'rgb(79, 70, 229)',
+              backgroundColor: 'rgba(79, 70, 229, 0.1)',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.1,
+              pointRadius: 2,
+              pointHoverRadius: 5
+            },
+            {
+              label: 'Cost Basis (' + fullData.currency + ')',
+              data: costBasis,
+              borderColor: 'rgb(156, 163, 175)',
+              backgroundColor: 'transparent',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              fill: false,
+              tension: 0.1,
+              pointRadius: 0,
+              pointHoverRadius: 3
+            }
+          ]
+        };
+
+        const chartOptions = {
+          responsive: true,
+          maintainAspectRatio: true,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          plugins: {
+            title: {
+              display: true,
+              text: 'Position Value Over Time',
+              font: {
+                size: 16,
+                weight: 'bold'
+              }
+            },
+            legend: {
+              display: true,
+              position: 'top',
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  let label = context.dataset.label || '';
+                  if (label) {
+                    label += ': ';
+                  }
+                  if (context.parsed.y !== null) {
+                    label += fullData.currency + ' ' + context.parsed.y.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2
+                    });
+                  }
+
+                  // Add profit/loss info to value line tooltip
+                  if (context.datasetIndex === 0) {
+                    const pl = profitLoss[context.dataIndex];
+                    const plPct = costBasis[context.dataIndex] > 0
+                      ? ((pl / costBasis[context.dataIndex]) * 100).toFixed(2)
+                      : 0;
+                    label += '\nP&L: ' + (pl >= 0 ? '+' : '') + pl.toFixed(2) + ' (' + (pl >= 0 ? '+' : '') + plPct + '%)';
+                  }
+
+                  return label;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Date'
+              },
+              ticks: {
+                maxTicksLimit: 10
+              }
+            },
+            y: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Value (' + fullData.currency + ')'
+              },
+              ticks: {
+                callback: function(value) {
+                  return fullData.currency + ' ' + value.toLocaleString();
+                }
+              }
+            }
+          }
+        };
+
+        if (chartInstance) {
+          chartInstance.data = chartData;
+          chartInstance.update('none'); // Update without animation for better performance
+        } else {
+          chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: chartData,
+            options: chartOptions
+          });
+        }
+      }
+
+      // Preset date range buttons
+      window.updateDateRange = function(range) {
+        // Get today's date at midnight
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const endDate = new Date(today);
+
+        // Parse purchase date from YYYY-MM-DD string
+        const purchaseParts = fullData.position.purchase_date.split('-');
+        const purchaseDate = new Date(
+          parseInt(purchaseParts[0]),
+          parseInt(purchaseParts[1]) - 1,
+          parseInt(purchaseParts[2])
+        );
+
+        let startDate;
+
+        switch(range) {
+          case '1M':
+            startDate = new Date(today);
+            startDate.setMonth(startDate.getMonth() - 1);
+            break;
+          case '3M':
+            startDate = new Date(today);
+            startDate.setMonth(startDate.getMonth() - 3);
+            break;
+          case '6M':
+            startDate = new Date(today);
+            startDate.setMonth(startDate.getMonth() - 6);
+            break;
+          case '1Y':
+            startDate = new Date(today);
+            startDate.setFullYear(startDate.getFullYear() - 1);
+            break;
+          case 'ALL':
+            startDate = new Date(purchaseDate);
+            break;
+        }
+
+        // Don't go before purchase date
+        if (startDate < purchaseDate) {
+          startDate = new Date(purchaseDate);
+        }
+
+        // Update date inputs (format as YYYY-MM-DD)
+        const formatDateForInput = (date) => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        };
+
+        document.getElementById('startDate').value = formatDateForInput(startDate);
+        document.getElementById('endDate').value = formatDateForInput(endDate);
+
+        // Filter and update chart
+        const filtered = filterDataByDateRange(startDate, endDate);
+        updateChart(filtered);
+        updateDateRangeInfo(startDate, endDate, filtered.length);
+
+        // Update button styles
+        updateButtonStyles(range);
+      };
+
+      // Custom date range selection
+      window.updateCustomDateRange = function() {
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+
+        // Parse date inputs (YYYY-MM-DD) into Date objects
+        const parseDateInput = (dateString) => {
+          const parts = dateString.split('-');
+          return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        };
+
+        const startDate = parseDateInput(startDateInput.value);
+        const endDate = parseDateInput(endDateInput.value);
+
+        // Validate dates
+        if (startDate > endDate) {
+          alert('Start date must be before end date');
+          return;
+        }
+
+        // Filter and update chart
+        const filtered = filterDataByDateRange(startDate, endDate);
+        updateChart(filtered);
+        updateDateRangeInfo(startDate, endDate, filtered.length);
+
+        // Clear preset button highlights
+        updateButtonStyles('CUSTOM');
+      };
+
+      // Update button styles to show active selection
+      function updateButtonStyles(activeRange) {
+        const buttons = document.querySelectorAll('[onclick^="updateDateRange"]');
+        buttons.forEach(btn => {
+          const range = btn.textContent.trim();
+          if (range === activeRange) {
+            btn.className = 'px-3 py-1 text-xs font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition';
+          } else {
+            btn.className = 'px-3 py-1 text-xs font-medium rounded-md bg-gray-100 hover:bg-indigo-100 hover:text-indigo-700 transition';
+          }
+        });
+      }
+
+      // Initialize chart with all data
+      updateChart(fullData.data_points);
+      updateButtonStyles('ALL');
+    })();
+  </script>
+
+  <!-- Simple modal controller for backdrop click -->
+  <script>
+    const modal = document.querySelector('[data-controller="modal"]');
+    if (modal) {
+      modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+          window.location.href = '<%= portfolio_path(@portfolio) %>';
+        }
+      });
+    }
+  </script>
+<% end %>
