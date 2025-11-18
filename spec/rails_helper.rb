@@ -75,6 +75,11 @@ RSpec.configure do |config|
 
   # Include Devise test helpers for request specs
   config.include Devise::Test::IntegrationHelpers, type: :request
+
+  # Include rails-controller-testing for assigns and assert_template
+  config.include Rails::Controller::Testing::TestProcess, type: :request
+  config.include Rails::Controller::Testing::TemplateAssertions, type: :request
+  config.include Rails::Controller::Testing::Integration, type: :request
 end
 
 # Configure Shoulda Matchers

@@ -89,7 +89,7 @@ class PositionsController < ApplicationController
       # Try to find the closest date (within 7 days)
       closest = asset.price_histories
         .where('date >= ? AND date <= ?', date - 7.days, date + 7.days)
-        .order("ABS(date - '#{date}')")
+        .order(Arel.sql("ABS(date - DATE '#{date.strftime('%Y-%m-%d')}')"))
         .first
 
       if closest

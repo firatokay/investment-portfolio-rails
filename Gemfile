@@ -98,6 +98,7 @@ group :test do
   gem "vcr"
   gem "webmock"
   gem "simplecov", require: false
+  gem "rails-controller-testing"
 end
 
 # Production
