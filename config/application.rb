@@ -23,5 +23,11 @@ module InvestmentPortfolioRails
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    # Autoload services directory
+    config.autoload_paths += %W(#{config.root}/app/services)
+
+    # Configure Zeitwerk to handle AI acronym
+    Rails.autoloaders.main.inflector.inflect("ai" => "AI")
   end
 end

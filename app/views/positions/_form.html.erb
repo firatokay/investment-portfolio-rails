@@ -112,7 +112,7 @@
     <!-- Action Buttons -->
     <div class="flex items-center justify-between pt-4 border-t border-gray-200">
       <%= link_to "Cancel", portfolio_path(portfolio), class: "text-gray-600 hover:text-gray-800" %>
-      <%= form.submit class: "bg-indigo-600 text-white rounded-md px-6 py-2 hover:bg-indigo-700 font-medium cursor-pointer" %>
+      <%= form.submit class: "bg-indigo-600 text-white rounded-md px-6 py-2 hover:bg-indigo-700 font-medium cursor-pointer", id: "submit_btn", data: { disable_with: "Saving..." } %>
     </div>
   </div>
 <% end %>
@@ -174,36 +174,45 @@
     const purchaseDate = purchaseDateField.value;
 
     if (!assetId || !purchaseDate) {
+      priceStatus.textContent = 'Will auto-fill when asset and date are selected';
+      priceStatus.classList.remove('text-red-500', 'text-green-600', 'text-indigo-600');
+      priceStatus.classList.add('text-gray-500');
       return;
     }
 
-    // Show loading indicator
+    // Disable average cost field and show loading indicator
+    averageCostField.disabled = true;
+    averageCostField.classList.add('bg-gray-100', 'cursor-not-allowed');
     priceLoading.classList.remove('hidden');
     priceStatus.textContent = 'Fetching price for ' + purchaseDate + '...';
     priceStatus.classList.remove('text-red-500', 'text-green-600');
-    priceStatus.classList.add('text-gray-500');
+    priceStatus.classList.add('text-indigo-600');
 
     // Fetch price from API
     fetch(`/portfolios/<%= portfolio.id %>/positions/price_for_date?asset_id=${assetId}&date=${purchaseDate}`)
       .then(response => response.json())
       .then(data => {
         priceLoading.classList.add('hidden');
+        averageCostField.disabled = false;
+        averageCostField.classList.remove('bg-gray-100', 'cursor-not-allowed');
 
         if (data.price) {
           averageCostField.value = data.price;
-          priceStatus.textContent = 'Price auto-filled: ' + data.price + ' ' + data.currency + ' (from historical data)';
-          priceStatus.classList.remove('text-gray-500', 'text-red-500');
+          priceStatus.innerHTML = '✓ Price auto-filled: <strong>' + data.price + ' ' + data.currency + '</strong> (from historical data)';
+          priceStatus.classList.remove('text-gray-500', 'text-red-500', 'text-indigo-600');
           priceStatus.classList.add('text-green-600');
         } else if (data.error) {
-          priceStatus.textContent = data.error + ' - Please enter manually';
-          priceStatus.classList.remove('text-gray-500', 'text-green-600');
+          priceStatus.textContent = '⚠ ' + data.error + ' - Please enter manually';
+          priceStatus.classList.remove('text-gray-500', 'text-green-600', 'text-indigo-600');
           priceStatus.classList.add('text-red-500');
         }
       })
       .catch(error => {
         priceLoading.classList.add('hidden');
-        priceStatus.textContent = 'Could not fetch price - Please enter manually';
-        priceStatus.classList.remove('text-gray-500', 'text-green-600');
+        averageCostField.disabled = false;
+        averageCostField.classList.remove('bg-gray-100', 'cursor-not-allowed');
+        priceStatus.textContent = '✗ Could not fetch price - Please enter manually';
+        priceStatus.classList.remove('text-gray-500', 'text-green-600', 'text-indigo-600');
         priceStatus.classList.add('text-red-500');
         console.error('Error fetching price:', error);
       });

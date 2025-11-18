@@ -111,17 +111,19 @@ The system gracefully handles:
 
 ### Claude AI Model
 
-- Model: `claude-3-5-sonnet-20241022`
+- Model: `claude-3-haiku-20240307` (Claude 3 Haiku)
 - Max tokens per request: 2000 tokens
 - Typical response: 1000-1500 tokens
+- Note: Haiku is fast, cost-effective, and excellent for portfolio analysis
 
 ### Cost Estimation
 
-Based on Anthropic's pricing (as of 2024):
+Based on Anthropic's pricing for Claude 3 Haiku (as of 2024):
 
-- Input: ~$3 per million tokens
-- Output: ~$15 per million tokens
-- Typical analysis cost: ~$0.02-0.03 per request
+- Input: $0.25 per million tokens
+- Output: $1.25 per million tokens
+- Typical analysis cost: ~$0.002-0.003 per request (much cheaper than Sonnet!)
+- Example: 1000 requests = approximately $2-3
 
 **Recommendation**: For personal use, the cost is negligible. For production applications with many users, consider implementing:
 - Rate limiting per user
@@ -295,8 +297,10 @@ For issues or questions:
 
 ## Version History
 
-- **v1.0** (November 2025)
+- **v1.0** (November 2024)
   - Initial release
-  - Claude 3.5 Sonnet integration
+  - Claude 3 Haiku integration
   - Basic portfolio analysis
   - Markdown-formatted recommendations
+  - Real-time analysis with 30-day market trends
+  - Beautiful modal UI with loading states

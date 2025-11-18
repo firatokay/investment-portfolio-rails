@@ -177,7 +177,48 @@
 </div>
 
 <!-- Modal Container for Progress Chart -->
-<%= turbo_frame_tag "progress_modal" %>
+<%= turbo_frame_tag "progress_modal" do %>
+  <!-- Loading state for Turbo Frame -->
+  <div class="hidden" id="turbo-loading">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-40"></div>
+    <div class="fixed inset-0 z-50 overflow-y-auto">
+      <div class="flex min-h-full items-center justify-center p-4">
+        <div class="relative transform overflow-hidden rounded-lg bg-white shadow-xl transition-all w-full max-w-md p-8">
+          <div class="text-center">
+            <svg class="animate-spin h-12 w-12 text-indigo-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Loading Position Progress</h3>
+            <p class="text-gray-600">Calculating analytics and rendering chart...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<script>
+// Show loading indicator when Turbo Frame starts loading
+document.addEventListener('turbo:frame-load', function(event) {
+  if (event.target.id === 'progress_modal') {
+    const loadingDiv = document.getElementById('turbo-loading');
+    if (loadingDiv) {
+      loadingDiv.classList.remove('hidden');
+    }
+  }
+});
+
+// Hide loading indicator when Turbo Frame finishes loading
+document.addEventListener('turbo:frame-render', function(event) {
+  if (event.target.id === 'progress_modal') {
+    const loadingDiv = document.getElementById('turbo-loading');
+    if (loadingDiv) {
+      loadingDiv.classList.add('hidden');
+    }
+  }
+});
+</script>
 
 <!-- AI Advisor Modal -->
 <div id="ai-advisor-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
@@ -195,13 +236,35 @@
     </div>
 
     <div id="ai-advisor-loading" class="text-center py-12">
-      <svg class="animate-spin h-12 w-12 text-purple-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-      <p class="text-gray-600 text-lg">Analyzing your portfolio...</p>
-      <p class="text-gray-500 text-sm mt-2">This may take a few seconds</p>
+      <div class="relative inline-flex mb-6">
+        <svg class="animate-spin h-16 w-16 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <svg class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-8 w-8 text-purple-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+        </svg>
+      </div>
+      <h4 class="text-gray-900 text-xl font-semibold mb-2">Analyzing Your Portfolio</h4>
+      <p class="text-gray-600 text-base mb-4">Our AI is reviewing your positions, performance, and market trends</p>
+      <div class="max-w-md mx-auto">
+        <div class="bg-gray-200 rounded-full h-2 mb-3 overflow-hidden">
+          <div class="bg-gradient-to-r from-purple-600 to-indigo-600 h-2 rounded-full animate-progress"></div>
+        </div>
+        <p class="text-gray-500 text-sm">This typically takes 5-10 seconds</p>
+      </div>
     </div>
+
+    <style>
+      @keyframes progress {
+        0% { width: 0%; }
+        50% { width: 70%; }
+        100% { width: 90%; }
+      }
+      .animate-progress {
+        animation: progress 8s ease-in-out infinite;
+      }
+    </style>
 
     <div id="ai-advisor-content" class="hidden">
       <div class="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-4 mb-4">
@@ -239,8 +302,31 @@
   const timestampDiv = document.getElementById('ai-advisor-timestamp');
   const errorMessageDiv = document.getElementById('ai-advisor-error-message');
 
+  // Track loading state to prevent double-submission
+  let isLoading = false;
+
   if (btn) {
     btn.addEventListener('click', async function() {
+      // Prevent double-submission
+      if (isLoading) {
+        return;
+      }
+
+      // Set loading state
+      isLoading = true;
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+      // Show original button text with loading indicator
+      const originalButtonHtml = btn.innerHTML;
+      btn.innerHTML = `
+        <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Analyzing...</span>
+      `;
+
       // Show modal
       modal.classList.remove('hidden');
 
@@ -283,6 +369,12 @@
         loadingDiv.classList.add('hidden');
         errorDiv.classList.remove('hidden');
         errorMessageDiv.textContent = 'Network error: ' + error.message;
+      } finally {
+        // Reset button state
+        isLoading = false;
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        btn.innerHTML = originalButtonHtml;
       }
     });
   }
@@ -297,6 +389,13 @@
   window.addEventListener('click', function(event) {
     if (event.target === modal) {
       modal.classList.add('hidden');
+    }
+  });
+
+  // Prevent closing modal while loading (optional safety feature)
+  modal.addEventListener('click', function(event) {
+    if (event.target === modal && isLoading) {
+      event.stopPropagation();
     }
   });
 

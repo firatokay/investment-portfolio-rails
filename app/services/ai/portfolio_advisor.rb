@@ -15,8 +15,8 @@ module AI
       prompt = build_analysis_prompt(portfolio_data, market_data)
 
       begin
-        response = @client.messages(
-          model: "claude-3-5-sonnet-20241022",
+        response = @client.messages.create(
+          model: "claude-3-haiku-20240307",
           max_tokens: 2000,
           messages: [
             {
@@ -28,7 +28,7 @@ module AI
 
         {
           success: true,
-          analysis: response.dig("content", 0, "text"),
+          analysis: response.content.first[:text],
           generated_at: Time.current
         }
       rescue => e
