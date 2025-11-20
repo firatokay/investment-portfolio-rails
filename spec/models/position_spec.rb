@@ -39,12 +39,15 @@ RSpec.describe Position, type: :model do
     end
 
     context 'when asset has no price' do
-      let!(:position_without_price) { build(:position, portfolio: portfolio, asset: asset, quantity: 100, average_cost: 200.0, purchase_currency: 'TRY') }
+      let(:asset_no_price) { create(:asset, symbol: 'NOPRICE', name: 'No Price Asset', asset_class: :stock, exchange: :nasdaq, currency: 'TRY') }
+
+      # Create price history BEFORE creating position with let!
+      let!(:temp_price) { create(:price_history, asset: asset_no_price, close: 100.0, date: Date.today) }
+      let!(:position_without_price) { create(:position, portfolio: portfolio, asset: asset_no_price, quantity: 100, average_cost: 200.0, purchase_currency: 'TRY') }
 
       before do
-        position_without_price.save(validate: false)
-        # Ensure no price histories exist
-        asset.price_histories.destroy_all
+        # Now destroy price history after position is created
+        asset_no_price.price_histories.destroy_all
       end
 
       it 'returns 0' do
@@ -56,7 +59,9 @@ RSpec.describe Position, type: :model do
   describe '#current_value' do
     context 'when currencies match' do
       before do
-        create(:price_history, asset: asset, close: 250.0, date: Date.today)
+        # Create or update price history for this test
+        price = asset.price_histories.find_or_initialize_by(date: Date.today)
+        price.update!(close: 250.0, open: 250.0, high: 250.0, low: 250.0, currency: asset.currency)
       end
 
       it 'returns value without conversion' do
@@ -82,12 +87,15 @@ RSpec.describe Position, type: :model do
     end
 
     context 'when value is zero' do
-      let!(:position_zero_value) { build(:position, portfolio: portfolio, asset: asset, quantity: 100, average_cost: 200.0, purchase_currency: 'TRY') }
+      let(:asset_zero) { create(:asset, symbol: 'ZERO', name: 'Zero Asset', asset_class: :stock, exchange: :nasdaq, currency: 'TRY') }
+
+      # Create price history BEFORE creating position with let!
+      let!(:temp_price_zero) { create(:price_history, asset: asset_zero, close: 100.0, date: Date.today) }
+      let!(:position_zero_value) { create(:position, portfolio: portfolio, asset: asset_zero, quantity: 100, average_cost: 200.0, purchase_currency: 'TRY') }
 
       before do
-        position_zero_value.save(validate: false)
-        # Ensure no price histories exist
-        asset.price_histories.destroy_all
+        # Now destroy price history after position is created
+        asset_zero.price_histories.destroy_all
       end
 
       it 'returns 0 without conversion' do
@@ -97,12 +105,34 @@ RSpec.describe Position, type: :model do
   end
 
   describe '#total_cost_in_purchase_currency' do
+    before do
+      # Ensure price history exists for asset to prevent callback
+      asset.price_histories.find_or_create_by!(date: Date.today) do |ph|
+        ph.close = 250.0
+        ph.open = 250.0
+        ph.high = 250.0
+        ph.low = 250.0
+        ph.currency = asset.currency
+      end
+    end
+
     it 'calculates total cost correctly' do
       expect(position.total_cost_in_purchase_currency).to eq(20000.0) # 100 * 200
     end
   end
 
   describe '#total_cost' do
+    before do
+      # Ensure price history exists for asset to prevent callback
+      asset.price_histories.find_or_create_by!(date: Date.today) do |ph|
+        ph.close = 250.0
+        ph.open = 250.0
+        ph.high = 250.0
+        ph.low = 250.0
+        ph.currency = asset.currency
+      end
+    end
+
     context 'when purchase currency matches portfolio base currency' do
       it 'returns cost without conversion' do
         expect(position.total_cost).to eq(20000.0)
@@ -126,7 +156,9 @@ RSpec.describe Position, type: :model do
 
   describe '#profit_loss' do
     before do
-      create(:price_history, asset: asset, close: 250.0, date: Date.today)
+      # Create or update price history for this test
+      price = asset.price_histories.find_or_initialize_by(date: Date.today)
+      price.update!(close: 250.0, open: 250.0, high: 250.0, low: 250.0, currency: asset.currency)
     end
 
     it 'calculates profit correctly' do
@@ -251,6 +283,17 @@ RSpec.describe Position, type: :model do
   end
 
   describe 'factory' do
+    before do
+      # Create or find price history to prevent after_create callback from fetching prices
+      asset.price_histories.find_or_create_by!(date: Date.today) do |ph|
+        ph.close = 250.0
+        ph.open = 250.0
+        ph.high = 250.0
+        ph.low = 250.0
+        ph.currency = asset.currency
+      end
+    end
+
     it 'creates a valid position' do
       expect(position).to be_valid
     end

@@ -1,4 +1,5 @@
 require 'rails_helper'
+require 'webmock/rspec'
 
 RSpec.describe "Positions", type: :request do
   let(:user) { create(:user) }
@@ -6,10 +7,14 @@ RSpec.describe "Positions", type: :request do
   let(:portfolio) { create(:portfolio, user: user) }
   let(:other_portfolio) { create(:portfolio, user: other_user) }
   let(:asset) { create(:asset, symbol: 'THYAO', name: 'THY', asset_class: :stock, exchange: :bist, currency: 'TRY') }
-  let(:position) do
-    pos = build(:position, portfolio: portfolio, asset: asset, quantity: 100, average_cost: 200.0, purchase_currency: 'TRY')
-    pos.save(validate: false)
-    pos
+  let!(:price_history) { create(:price_history, asset: asset, date: Date.today, close: 250.0) }
+  let(:position) { create(:position, portfolio: portfolio, asset: asset, quantity: 100, average_cost: 200.0, purchase_currency: 'TRY') }
+
+  before do
+    # Stub ForexDataService to prevent real API calls in controller
+    allow_any_instance_of(MarketData::ForexDataService).to receive(:update_currency_rate)
+    # Stub market data services to prevent real API calls when positions are created via POST
+    allow_any_instance_of(MarketData::StockDataService).to receive(:update_latest_price)
   end
 
   describe "GET /portfolios/:portfolio_id/positions" do
@@ -338,7 +343,7 @@ RSpec.describe "Positions", type: :request do
   describe "GET /portfolios/:portfolio_id/positions/:id/progress" do
     let!(:price_history1) { create(:price_history, asset: asset, date: 10.days.ago, close: 180.0) }
     let!(:price_history2) { create(:price_history, asset: asset, date: 5.days.ago, close: 190.0) }
-    let!(:price_history3) { create(:price_history, asset: asset, date: Date.today, close: 200.0) }
+    # price_history3 is already created at line 10 (Date.today with close: 250.0)
 
     context "when user is not logged in" do
       it "redirects to login page" do
@@ -398,8 +403,7 @@ RSpec.describe "Positions", type: :request do
       before { sign_in user }
 
       context "with exact date match" do
-        let!(:price_history) { create(:price_history, asset: asset, date: Date.today, close: 250.5) }
-
+        # price_history already exists from line 10 (Date.today, close: 250.0)
         it "returns the price for the exact date" do
           get price_for_date_portfolio_positions_path(portfolio), params: {
             asset_id: asset.id,
@@ -408,18 +412,23 @@ RSpec.describe "Positions", type: :request do
 
           expect(response).to have_http_status(:success)
           json_response = JSON.parse(response.body)
-          expect(json_response['price'].to_f).to eq(250.5)
+          expect(json_response['price'].to_f).to eq(250.0)
           expect(json_response['currency']).to eq(asset.currency)
         end
       end
 
       context "with no exact match but close date available" do
-        let!(:price_history) { create(:price_history, asset: asset, date: 2.days.ago, close: 230.0) }
+        let!(:price_history_past) { create(:price_history, asset: asset, date: 2.days.ago, close: 230.0) }
+
+        before do
+          # Stub the fetch to prevent API calls
+          allow(MarketData::HistoricalPriceFetcher).to receive(:fetch_for_asset).and_return(0)
+        end
 
         it "returns the closest available price" do
           get price_for_date_portfolio_positions_path(portfolio), params: {
             asset_id: asset.id,
-            date: Date.today.to_s
+            date: 3.days.ago.to_date.to_s
           }
 
           json_response = JSON.parse(response.body)
@@ -429,11 +438,16 @@ RSpec.describe "Positions", type: :request do
       end
 
       context "with no price data available" do
-        it "returns not found error" do
-          allow(MarketData::HistoricalPriceFetcher).to receive(:fetch_for_asset).and_return(nil)
+        let(:asset_no_price) { create(:asset, symbol: 'NOPRICE', name: 'No Price', asset_class: :stock, exchange: :bist, currency: 'TRY') }
 
+        before do
+          # Stub the fetch to prevent API calls and return 0 (no data fetched)
+          allow(MarketData::HistoricalPriceFetcher).to receive(:fetch_for_asset).and_return(0)
+        end
+
+        it "returns not found error" do
           get price_for_date_portfolio_positions_path(portfolio), params: {
-            asset_id: asset.id,
+            asset_id: asset_no_price.id,
             date: Date.today.to_s
           }
 

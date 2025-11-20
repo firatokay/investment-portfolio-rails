@@ -9,6 +9,8 @@ class PortfoliosController < ApplicationController
 
   def show
     # @portfolio is set by before_action
+    # Ensure exchange rates are up to date
+    ensure_fresh_exchange_rates
   end
 
   def new
@@ -74,5 +76,36 @@ class PortfoliosController < ApplicationController
 
   def portfolio_params
     params.require(:portfolio).permit(:name, :description)
+  end
+
+  # Ensure exchange rates are updated if they're stale (older than 1 day)
+  def ensure_fresh_exchange_rates
+    forex_pairs = [
+      { from: 'USD', to: 'TRY' },
+      { from: 'EUR', to: 'TRY' }
+    ]
+
+    forex_service = MarketData::ForexDataService.new
+
+    forex_pairs.each do |pair|
+      # Check if we have a rate from today
+      latest_rate = CurrencyRate.where(
+        from_currency: pair[:from],
+        to_currency: pair[:to]
+      ).order(date: :desc).first
+
+      # If no rate exists or the latest rate is older than today, fetch a new one
+      if latest_rate.nil? || latest_rate.date < Date.today
+        begin
+          forex_service.update_currency_rate(
+            from_currency: pair[:from],
+            to_currency: pair[:to]
+          )
+          Rails.logger.info "Updated #{pair[:from]}/#{pair[:to]} exchange rate"
+        rescue => e
+          Rails.logger.error "Failed to update #{pair[:from]}/#{pair[:to]}: #{e.message}"
+        end
+      end
+    end
   end
 end

@@ -1,10 +1,16 @@
 require 'rails_helper'
+require 'webmock/rspec'
 
 RSpec.describe "Portfolios", type: :request do
   let(:user) { create(:user) }
   let(:other_user) { create(:user, email: 'other@example.com') }
   let(:portfolio) { create(:portfolio, user: user) }
   let(:other_portfolio) { create(:portfolio, user: other_user) }
+
+  before do
+    # Stub ForexDataService to prevent real API calls in ensure_fresh_exchange_rates
+    allow_any_instance_of(MarketData::ForexDataService).to receive(:update_currency_rate)
+  end
 
   describe "GET /portfolios" do
     context "when user is not logged in" do
@@ -75,6 +81,84 @@ RSpec.describe "Portfolios", type: :request do
         expect(response).to redirect_to(portfolios_path)
         follow_redirect!
         expect(response.body).to include("not authorized")
+      end
+
+      context "with stale exchange rates" do
+        let!(:old_usd_rate) do
+          create(:currency_rate,
+            from_currency: 'USD',
+            to_currency: 'TRY',
+            rate: 32.0,
+            date: 2.days.ago
+          )
+        end
+
+        let!(:old_eur_rate) do
+          create(:currency_rate,
+            from_currency: 'EUR',
+            to_currency: 'TRY',
+            rate: 45.0,
+            date: 2.days.ago
+          )
+        end
+
+        it "fetches fresh exchange rates when viewing portfolio" do
+          # Mock the forex service to return new rates
+          allow_any_instance_of(MarketData::ForexDataService).to receive(:update_currency_rate) do |service, args|
+            create(:currency_rate,
+              from_currency: args[:from_currency],
+              to_currency: args[:to_currency],
+              rate: args[:from_currency] == 'USD' ? 35.0 : 48.5,
+              date: Date.today
+            )
+          end
+
+          expect {
+            get portfolio_path(portfolio)
+          }.to change {
+            CurrencyRate.where(date: Date.today).count
+          }.by(2) # USD/TRY and EUR/TRY
+
+          expect(response).to have_http_status(:success)
+        end
+
+        it "handles API errors gracefully" do
+          allow_any_instance_of(MarketData::ForexDataService).to receive(:update_currency_rate)
+            .and_raise(MarketData::TwelveDataProvider::ApiError.new('API error'))
+
+          expect {
+            get portfolio_path(portfolio)
+          }.not_to raise_error
+
+          expect(response).to have_http_status(:success)
+        end
+      end
+
+      context "with fresh exchange rates" do
+        let!(:today_usd_rate) do
+          create(:currency_rate,
+            from_currency: 'USD',
+            to_currency: 'TRY',
+            rate: 35.0,
+            date: Date.today
+          )
+        end
+
+        let!(:today_eur_rate) do
+          create(:currency_rate,
+            from_currency: 'EUR',
+            to_currency: 'TRY',
+            rate: 48.5,
+            date: Date.today
+          )
+        end
+
+        it "does not fetch new rates when rates are current" do
+          expect_any_instance_of(MarketData::ForexDataService).not_to receive(:update_currency_rate)
+
+          get portfolio_path(portfolio)
+          expect(response).to have_http_status(:success)
+        end
       end
     end
   end
