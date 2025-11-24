@@ -72,8 +72,9 @@ RSpec.describe "Portfolios", type: :request do
 
       it "displays portfolio details" do
         get portfolio_path(portfolio)
-        expect(response.body).to include(portfolio.name)
-        expect(response.body).to include(portfolio.description) if portfolio.description.present?
+        # Check for HTML-escaped version of the portfolio name
+        expect(response.body).to include(CGI.escapeHTML(portfolio.name))
+        expect(response.body).to include(CGI.escapeHTML(portfolio.description)) if portfolio.description.present?
       end
 
       it "redirects when trying to view other user's portfolio" do
@@ -269,7 +270,7 @@ RSpec.describe "Portfolios", type: :request do
       it "displays the edit form" do
         get edit_portfolio_path(portfolio)
         expect(response.body).to include('form')
-        expect(response.body).to include(portfolio.name)
+        expect(response.body).to include(CGI.escapeHTML(portfolio.name))
       end
 
       it "redirects when trying to edit other user's portfolio" do

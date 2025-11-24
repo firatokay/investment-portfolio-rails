@@ -1,6 +1,12 @@
 Rails.application.routes.draw do
   devise_for :users
 
+  # Mount Sidekiq Web UI (protected by devise authentication)
+  require 'sidekiq/web'
+  authenticate :user do
+    mount Sidekiq::Web => '/sidekiq'
+  end
+
   # Root route
   root "home#index"
 
@@ -16,6 +22,12 @@ Rails.application.routes.draw do
       member do
         get :progress
       end
+    end
+    # Analytics routes
+    resource :analytics, only: [:show] do
+      get :timeline
+      get :allocation
+      get :performance
     end
   end
 

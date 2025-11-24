@@ -1,0 +1,30 @@
+:concurrency: 5
+:queues:
+  - default
+  - mailers
+  - critical
+
+:schedule:
+  fetch_stock_prices:
+    cron: '0 18 * * 1-5'  # Daily at 6 PM (after BIST closes), Monday-Friday
+    class: FetchStockPricesJob
+    queue: default
+    description: "Fetch latest prices for all stocks and ETFs"
+
+  fetch_commodity_prices:
+    cron: '*/30 * * * *'  # Every 30 minutes
+    class: FetchCommodityPricesJob
+    queue: default
+    description: "Fetch latest prices for precious metals"
+
+  fetch_forex_rates:
+    cron: '*/15 * * * *'  # Every 15 minutes
+    class: FetchForexRatesJob
+    queue: default
+    description: "Update forex exchange rates"
+
+  fetch_cryptocurrency_prices:
+    cron: '*/30 * * * *'  # Every 30 minutes
+    class: FetchCryptocurrencyPricesJob
+    queue: default
+    description: "Fetch latest cryptocurrency prices"

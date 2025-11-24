@@ -16,4 +16,9 @@ class Portfolio < ApplicationRecord
   def base_currency
     'TRY'
   end
+
+  # Get analytics service for this portfolio
+  def analytics
+    @analytics ||= PortfolioAnalyticsService.new(self)
+  end
 end
