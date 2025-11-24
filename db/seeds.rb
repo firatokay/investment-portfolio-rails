@@ -63,13 +63,23 @@ etfs.each do |etf_data|
   puts "  ✓ #{asset.symbol} - #{asset.name}"
 end
 
-# Turkish Stocks (BIST)
+# Turkish Stocks (BIST) - Extended list as per Phase 7
 turkish_stocks = [
-  { symbol: 'THYAO', name: 'Türk Hava Yolları', exchange: :bist, currency: 'TRY' },
-  { symbol: 'GARAN', name: 'Garanti Bankası', exchange: :bist, currency: 'TRY' },
-  { symbol: 'AKBNK', name: 'Akbank', exchange: :bist, currency: 'TRY' },
-  { symbol: 'EREGL', name: 'Ereğli Demir Çelik', exchange: :bist, currency: 'TRY' },
-  { symbol: 'KCHOL', name: 'Koç Holding', exchange: :bist, currency: 'TRY' }
+  { symbol: 'THYAO', name: 'Türk Hava Yolları', exchange: :bist, currency: 'TRY', sector: 'Transportation' },
+  { symbol: 'ASELS', name: 'Aselsan Elektronik', exchange: :bist, currency: 'TRY', sector: 'Defense' },
+  { symbol: 'AKBNK', name: 'Akbank', exchange: :bist, currency: 'TRY', sector: 'Banking' },
+  { symbol: 'GARAN', name: 'Garanti Bankası', exchange: :bist, currency: 'TRY', sector: 'Banking' },
+  { symbol: 'EREGL', name: 'Ereğli Demir Çelik', exchange: :bist, currency: 'TRY', sector: 'Steel' },
+  { symbol: 'TUPRS', name: 'Tüpraş', exchange: :bist, currency: 'TRY', sector: 'Oil & Gas' },
+  { symbol: 'SAHOL', name: 'Sabancı Holding', exchange: :bist, currency: 'TRY', sector: 'Conglomerate' },
+  { symbol: 'KOZAL', name: 'Koza Altın', exchange: :bist, currency: 'TRY', sector: 'Mining' },
+  { symbol: 'SISE', name: 'Şişe Cam', exchange: :bist, currency: 'TRY', sector: 'Glass' },
+  { symbol: 'KCHOL', name: 'Koç Holding', exchange: :bist, currency: 'TRY', sector: 'Conglomerate' },
+  { symbol: 'TCELL', name: 'Turkcell', exchange: :bist, currency: 'TRY', sector: 'Telecommunications' },
+  { symbol: 'PETKM', name: 'Petkim', exchange: :bist, currency: 'TRY', sector: 'Petrochemicals' },
+  { symbol: 'BIMAS', name: 'BIM Mağazalar', exchange: :bist, currency: 'TRY', sector: 'Retail' },
+  { symbol: 'PGSUS', name: 'Pegasus Hava Taşımacılığı', exchange: :bist, currency: 'TRY', sector: 'Transportation' },
+  { symbol: 'ISCTR', name: 'İş Bankası', exchange: :bist, currency: 'TRY', sector: 'Banking' }
 ]
 
 puts "🇹🇷 Creating Turkish stocks..."
@@ -82,7 +92,15 @@ turkish_stocks.each do |stock_data|
     a.asset_class = :stock
     a.currency = stock_data[:currency]
   end
-  puts "  ✓ #{asset.symbol} - #{asset.name}"
+
+  # Add sector metadata if available
+  if stock_data[:sector] && asset.asset_metadata.nil?
+    AssetMetadata.find_or_create_by!(asset: asset) do |m|
+      m.metadata = { sector: stock_data[:sector] }
+    end
+  end
+
+  puts "  ✓ #{asset.symbol} - #{asset.name} (#{stock_data[:sector]})"
 end
 
 # Precious Metals
@@ -151,11 +169,217 @@ cryptocurrencies.each do |crypto_data|
   puts "  ✓ #{asset.symbol} - #{asset.name}"
 end
 
+# Create Demo User
+puts "\n👤 Creating demo user..."
+demo_user = User.find_or_create_by!(email: 'demo@example.com') do |u|
+  u.password = 'password123'
+  u.password_confirmation = 'password123'
+  u.first_name = 'Demo'
+  u.last_name = 'User'
+end
+puts "  ✓ Demo user created: #{demo_user.email}"
+puts "  📧 Email: demo@example.com"
+puts "  🔑 Password: password123"
+
+# Create Sample Portfolios
+puts "\n💼 Creating sample portfolios..."
+
+# Portfolio 1: Diversified Multi-Asset Portfolio
+diversified_portfolio = Portfolio.find_or_create_by!(
+  user: demo_user,
+  name: 'Diversified Portfolio'
+) do |p|
+  p.description = 'Multi-asset portfolio with stocks, precious metals, and forex exposure'
+end
+puts "  ✓ Created: #{diversified_portfolio.name}"
+
+# Portfolio 2: Turkish Focus Portfolio
+turkish_portfolio = Portfolio.find_or_create_by!(
+  user: demo_user,
+  name: 'Turkish Focus'
+) do |p|
+  p.description = 'Portfolio focused on Turkish stocks and TRY-denominated assets'
+end
+puts "  ✓ Created: #{turkish_portfolio.name}"
+
+# Portfolio 3: US Tech Portfolio
+tech_portfolio = Portfolio.find_or_create_by!(
+  user: demo_user,
+  name: 'US Tech Giants'
+) do |p|
+  p.description = 'Portfolio of major US technology companies'
+end
+puts "  ✓ Created: #{tech_portfolio.name}"
+
+# Add some currency rates for conversions
+puts "\n💱 Creating sample currency rates..."
+today = Date.today
+currency_rates_data = [
+  { from: 'USD', to: 'TRY', rate: 34.50, date: today },
+  { from: 'EUR', to: 'TRY', rate: 37.80, date: today },
+  { from: 'EUR', to: 'USD', rate: 1.095, date: today },
+  { from: 'GBP', to: 'USD', rate: 1.268, date: today },
+  { from: 'USD', to: 'JPY', rate: 149.50, date: today },
+  # Historical rates (30 days ago)
+  { from: 'USD', to: 'TRY', rate: 34.20, date: today - 30.days },
+  { from: 'EUR', to: 'TRY', rate: 37.50, date: today - 30.days },
+  { from: 'EUR', to: 'USD', rate: 1.096, date: today - 30.days }
+]
+
+currency_rates_data.each do |rate_data|
+  CurrencyRate.find_or_create_by!(
+    from_currency: rate_data[:from],
+    to_currency: rate_data[:to],
+    date: rate_data[:date]
+  ) do |r|
+    r.rate = rate_data[:rate]
+  end
+end
+puts "  ✓ Created #{currency_rates_data.length} currency rates"
+
+# Add sample price histories for some assets
+puts "\n📈 Creating sample price histories..."
+
+# Helper method to create price history
+def create_sample_prices(asset, current_price, days: 30)
+  today = Date.today
+
+  (0..days).each do |days_ago|
+    date = today - days_ago.days
+    # Simulate some price variation (±5% random walk)
+    variation = 1 + (rand(-5.0..5.0) / 100)
+    price = current_price * variation
+
+    PriceHistory.find_or_create_by!(asset: asset, date: date) do |ph|
+      ph.open = price
+      ph.close = price * (1 + rand(-2.0..2.0) / 100)
+      ph.high = [ph.open, ph.close].max * (1 + rand(0..1.0) / 100)
+      ph.low = [ph.open, ph.close].min * (1 - rand(0..1.0) / 100)
+      ph.volume = rand(1_000_000..10_000_000)
+      ph.currency = asset.currency
+    end
+  end
+end
+
+# Add prices for selected assets
+sample_assets_with_prices = [
+  { symbol: 'THYAO', exchange: :bist, price: 280.50 },
+  { symbol: 'AKBNK', exchange: :bist, price: 45.75 },
+  { symbol: 'ASELS', exchange: :bist, price: 95.20 },
+  { symbol: 'GARAN', exchange: :bist, price: 130.40 },
+  { symbol: 'AAPL', exchange: :nasdaq, price: 178.50 },
+  { symbol: 'MSFT', exchange: :nasdaq, price: 415.20 },
+  { symbol: 'GOOGL', exchange: :nasdaq, price: 142.80 },
+  { symbol: 'XAU', exchange: :twelve_data, price: 2050.00 },
+  { symbol: 'XAG', exchange: :twelve_data, price: 24.50 }
+]
+
+sample_assets_with_prices.each do |asset_data|
+  asset = Asset.find_by(symbol: asset_data[:symbol], exchange: asset_data[:exchange])
+  if asset
+    create_sample_prices(asset, asset_data[:price])
+    puts "  ✓ #{asset.symbol}: 31 days of price history"
+  end
+end
+
+# Create positions for Diversified Portfolio
+puts "\n💰 Creating positions for Diversified Portfolio..."
+diversified_positions = [
+  # Turkish Stocks
+  { symbol: 'THYAO', exchange: :bist, quantity: 100, avg_cost: 250.00, days_ago: 120 },
+  { symbol: 'AKBNK', exchange: :bist, quantity: 500, avg_cost: 42.50, days_ago: 90 },
+  { symbol: 'ASELS', exchange: :bist, quantity: 200, avg_cost: 88.00, days_ago: 60 },
+  # Precious Metals
+  { symbol: 'XAU', exchange: :twelve_data, quantity: 5, avg_cost: 1950.00, days_ago: 180 },
+  { symbol: 'XAG', exchange: :twelve_data, quantity: 100, avg_cost: 23.00, days_ago: 150 },
+  # US Stocks
+  { symbol: 'AAPL', exchange: :nasdaq, quantity: 50, avg_cost: 165.00, days_ago: 200 },
+  { symbol: 'MSFT', exchange: :nasdaq, quantity: 30, avg_cost: 380.00, days_ago: 180 }
+]
+
+diversified_positions.each do |pos_data|
+  asset = Asset.find_by(symbol: pos_data[:symbol], exchange: pos_data[:exchange])
+  if asset
+    Position.find_or_create_by!(
+      portfolio: diversified_portfolio,
+      asset: asset
+    ) do |p|
+      p.purchase_date = pos_data[:days_ago].days.ago
+      p.quantity = pos_data[:quantity]
+      p.average_cost = pos_data[:avg_cost]
+      p.purchase_currency = asset.currency
+      p.status = :open
+    end
+    puts "  ✓ #{asset.symbol}: #{pos_data[:quantity]} units @ #{pos_data[:avg_cost]} #{asset.currency}"
+  end
+end
+
+# Create positions for Turkish Focus Portfolio
+puts "\n💰 Creating positions for Turkish Focus Portfolio..."
+turkish_positions = [
+  { symbol: 'THYAO', exchange: :bist, quantity: 150, avg_cost: 265.00, days_ago: 45 },
+  { symbol: 'AKBNK', exchange: :bist, quantity: 800, avg_cost: 44.00, days_ago: 30 },
+  { symbol: 'GARAN', exchange: :bist, quantity: 400, avg_cost: 125.00, days_ago: 60 },
+  { symbol: 'ASELS', exchange: :bist, quantity: 100, avg_cost: 90.00, days_ago: 75 }
+]
+
+turkish_positions.each do |pos_data|
+  asset = Asset.find_by(symbol: pos_data[:symbol], exchange: pos_data[:exchange])
+  if asset
+    Position.find_or_create_by!(
+      portfolio: turkish_portfolio,
+      asset: asset
+    ) do |p|
+      p.purchase_date = pos_data[:days_ago].days.ago
+      p.quantity = pos_data[:quantity]
+      p.average_cost = pos_data[:avg_cost]
+      p.purchase_currency = asset.currency
+      p.status = :open
+    end
+    puts "  ✓ #{asset.symbol}: #{pos_data[:quantity]} units @ #{pos_data[:avg_cost]} #{asset.currency}"
+  end
+end
+
+# Create positions for US Tech Portfolio
+puts "\n💰 Creating positions for US Tech Portfolio..."
+tech_positions = [
+  { symbol: 'AAPL', exchange: :nasdaq, quantity: 100, avg_cost: 170.00, days_ago: 90 },
+  { symbol: 'MSFT', exchange: :nasdaq, quantity: 50, avg_cost: 395.00, days_ago: 120 },
+  { symbol: 'GOOGL', exchange: :nasdaq, quantity: 75, avg_cost: 138.00, days_ago: 60 }
+]
+
+tech_positions.each do |pos_data|
+  asset = Asset.find_by(symbol: pos_data[:symbol], exchange: pos_data[:exchange])
+  if asset
+    Position.find_or_create_by!(
+      portfolio: tech_portfolio,
+      asset: asset
+    ) do |p|
+      p.purchase_date = pos_data[:days_ago].days.ago
+      p.quantity = pos_data[:quantity]
+      p.average_cost = pos_data[:avg_cost]
+      p.purchase_currency = asset.currency
+      p.status = :open
+    end
+    puts "  ✓ #{asset.symbol}: #{pos_data[:quantity]} units @ #{pos_data[:avg_cost]} #{asset.currency}"
+  end
+end
+
 puts "\n✅ Seeding completed!"
-puts "📊 Total assets: #{Asset.count}"
-puts "  - US Stocks: #{Asset.where(asset_class: :stock, exchange: [:nyse, :nasdaq]).count}"
-puts "  - Turkish Stocks: #{Asset.where(asset_class: :stock, exchange: :bist).count}"
-puts "  - ETFs: #{Asset.where(asset_class: :etf).count}"
-puts "  - Precious Metals: #{Asset.where(asset_class: :precious_metal).count}"
-puts "  - Forex: #{Asset.where(asset_class: :forex).count}"
-puts "  - Cryptocurrencies: #{Asset.where(asset_class: :cryptocurrency).count}"
+puts "\n📊 Summary:"
+puts "  Total assets: #{Asset.count}"
+puts "    - US Stocks: #{Asset.where(asset_class: :stock, exchange: [:nyse, :nasdaq]).count}"
+puts "    - Turkish Stocks: #{Asset.where(asset_class: :stock, exchange: :bist).count}"
+puts "    - ETFs: #{Asset.where(asset_class: :etf).count}"
+puts "    - Precious Metals: #{Asset.where(asset_class: :precious_metal).count}"
+puts "    - Forex: #{Asset.where(asset_class: :forex).count}"
+puts "    - Cryptocurrencies: #{Asset.where(asset_class: :cryptocurrency).count}"
+puts "\n👤 Users: #{User.count}"
+puts "💼 Portfolios: #{Portfolio.count}"
+puts "💰 Positions: #{Position.count}"
+puts "📈 Price histories: #{PriceHistory.count} records"
+puts "💱 Currency rates: #{CurrencyRate.count} records"
+puts "\n🎉 Ready to explore!"
+puts "   Login at: http://localhost:3001"
+puts "   Email: demo@example.com"
+puts "   Password: password123"
