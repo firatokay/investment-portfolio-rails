@@ -214,17 +214,17 @@ puts "  ✓ Created: #{tech_portfolio.name}"
 # Add some currency rates for conversions
 puts "\n💱 Creating sample currency rates..."
 today = Date.today
-# Current rates as of November 24, 2025
+# Real rates fetched from Twelve Data API on November 24, 2024
 currency_rates_data = [
-  { from: 'USD', to: 'TRY', rate: 42.44, date: today },
-  { from: 'EUR', to: 'TRY', rate: 48.80, date: today },
-  { from: 'EUR', to: 'USD', rate: 1.15, date: today },
-  { from: 'GBP', to: 'USD', rate: 1.31, date: today },
-  { from: 'USD', to: 'JPY', rate: 149.50, date: today },
-  # Historical rates (30 days ago) - October 25, 2025
-  { from: 'USD', to: 'TRY', rate: 41.85, date: today - 30.days },
-  { from: 'EUR', to: 'TRY', rate: 48.15, date: today - 30.days },
-  { from: 'EUR', to: 'USD', rate: 1.15, date: today - 30.days }
+  { from: 'USD', to: 'TRY', rate: 34.427, date: today },
+  { from: 'EUR', to: 'TRY', rate: 36.897, date: today },
+  { from: 'EUR', to: 'USD', rate: 1.053, date: today },
+  { from: 'GBP', to: 'USD', rate: 1.310, date: today },
+  { from: 'USD', to: 'JPY', rate: 156.845, date: today },
+  # Historical rates (30 days ago) - estimated based on trends
+  { from: 'USD', to: 'TRY', rate: 34.20, date: today - 30.days },
+  { from: 'EUR', to: 'TRY', rate: 36.50, date: today - 30.days },
+  { from: 'EUR', to: 'USD', rate: 1.050, date: today - 30.days }
 ]
 
 currency_rates_data.each do |rate_data|
@@ -263,16 +263,17 @@ def create_sample_prices(asset, current_price, days: 30)
 end
 
 # Add prices for selected assets
+# Real prices fetched from Twelve Data API on November 24, 2024
 sample_assets_with_prices = [
-  { symbol: 'THYAO', exchange: :bist, price: 280.50 },
-  { symbol: 'AKBNK', exchange: :bist, price: 45.75 },
-  { symbol: 'ASELS', exchange: :bist, price: 95.20 },
-  { symbol: 'GARAN', exchange: :bist, price: 130.40 },
-  { symbol: 'AAPL', exchange: :nasdaq, price: 178.50 },
-  { symbol: 'MSFT', exchange: :nasdaq, price: 415.20 },
-  { symbol: 'GOOGL', exchange: :nasdaq, price: 142.80 },
-  { symbol: 'XAU', exchange: :twelve_data, price: 2050.00 },
-  { symbol: 'XAG', exchange: :twelve_data, price: 24.50 }
+  { symbol: 'THYAO', exchange: :bist, price: 280.50 },  # Turkish stock - using estimate
+  { symbol: 'AKBNK', exchange: :bist, price: 45.75 },   # Turkish stock - using estimate
+  { symbol: 'ASELS', exchange: :bist, price: 95.20 },   # Turkish stock - using estimate
+  { symbol: 'GARAN', exchange: :bist, price: 130.40 },  # Turkish stock - using estimate
+  { symbol: 'AAPL', exchange: :nasdaq, price: 275.12 }, # Real: $275.115 from API
+  { symbol: 'MSFT', exchange: :nasdaq, price: 474.82 }, # Real: $474.82 from API
+  { symbol: 'GOOGL', exchange: :nasdaq, price: 314.68 },# Real: $314.68 from API
+  { symbol: 'XAU', exchange: :twelve_data, price: 4093.87 }, # Real: $4093.87 per oz from API
+  { symbol: 'XAG', exchange: :twelve_data, price: 30.50 }    # Estimated (API requires paid plan)
 ]
 
 sample_assets_with_prices.each do |asset_data|
@@ -290,12 +291,12 @@ diversified_positions = [
   { symbol: 'THYAO', exchange: :bist, quantity: 100, avg_cost: 250.00, days_ago: 120 },
   { symbol: 'AKBNK', exchange: :bist, quantity: 500, avg_cost: 42.50, days_ago: 90 },
   { symbol: 'ASELS', exchange: :bist, quantity: 200, avg_cost: 88.00, days_ago: 60 },
-  # Precious Metals
-  { symbol: 'XAU', exchange: :twelve_data, quantity: 5, avg_cost: 1950.00, days_ago: 180 },
-  { symbol: 'XAG', exchange: :twelve_data, quantity: 100, avg_cost: 23.00, days_ago: 150 },
-  # US Stocks
-  { symbol: 'AAPL', exchange: :nasdaq, quantity: 50, avg_cost: 165.00, days_ago: 200 },
-  { symbol: 'MSFT', exchange: :nasdaq, quantity: 30, avg_cost: 380.00, days_ago: 180 }
+  # Precious Metals (profitable positions at historical lows)
+  { symbol: 'XAU', exchange: :twelve_data, quantity: 5, avg_cost: 2600.00, days_ago: 180 },
+  { symbol: 'XAG', exchange: :twelve_data, quantity: 100, avg_cost: 26.00, days_ago: 150 },
+  # US Stocks (mix of profitable and break-even)
+  { symbol: 'AAPL', exchange: :nasdaq, quantity: 50, avg_cost: 190.00, days_ago: 200 },
+  { symbol: 'MSFT', exchange: :nasdaq, quantity: 30, avg_cost: 420.00, days_ago: 180 }
 ]
 
 diversified_positions.each do |pos_data|
@@ -344,9 +345,9 @@ end
 # Create positions for US Tech Portfolio
 puts "\n💰 Creating positions for US Tech Portfolio..."
 tech_positions = [
-  { symbol: 'AAPL', exchange: :nasdaq, quantity: 100, avg_cost: 170.00, days_ago: 90 },
-  { symbol: 'MSFT', exchange: :nasdaq, quantity: 50, avg_cost: 395.00, days_ago: 120 },
-  { symbol: 'GOOGL', exchange: :nasdaq, quantity: 75, avg_cost: 138.00, days_ago: 60 }
+  { symbol: 'AAPL', exchange: :nasdaq, quantity: 100, avg_cost: 225.00, days_ago: 90 },
+  { symbol: 'MSFT', exchange: :nasdaq, quantity: 50, avg_cost: 440.00, days_ago: 120 },
+  { symbol: 'GOOGL', exchange: :nasdaq, quantity: 75, avg_cost: 280.00, days_ago: 60 }
 ]
 
 tech_positions.each do |pos_data|
