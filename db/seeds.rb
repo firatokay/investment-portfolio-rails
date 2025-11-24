@@ -214,16 +214,17 @@ puts "  ✓ Created: #{tech_portfolio.name}"
 # Add some currency rates for conversions
 puts "\n💱 Creating sample currency rates..."
 today = Date.today
+# Current rates as of November 24, 2025
 currency_rates_data = [
-  { from: 'USD', to: 'TRY', rate: 34.50, date: today },
-  { from: 'EUR', to: 'TRY', rate: 37.80, date: today },
-  { from: 'EUR', to: 'USD', rate: 1.095, date: today },
-  { from: 'GBP', to: 'USD', rate: 1.268, date: today },
+  { from: 'USD', to: 'TRY', rate: 42.44, date: today },
+  { from: 'EUR', to: 'TRY', rate: 48.80, date: today },
+  { from: 'EUR', to: 'USD', rate: 1.15, date: today },
+  { from: 'GBP', to: 'USD', rate: 1.31, date: today },
   { from: 'USD', to: 'JPY', rate: 149.50, date: today },
-  # Historical rates (30 days ago)
-  { from: 'USD', to: 'TRY', rate: 34.20, date: today - 30.days },
-  { from: 'EUR', to: 'TRY', rate: 37.50, date: today - 30.days },
-  { from: 'EUR', to: 'USD', rate: 1.096, date: today - 30.days }
+  # Historical rates (30 days ago) - October 25, 2025
+  { from: 'USD', to: 'TRY', rate: 41.85, date: today - 30.days },
+  { from: 'EUR', to: 'TRY', rate: 48.15, date: today - 30.days },
+  { from: 'EUR', to: 'USD', rate: 1.15, date: today - 30.days }
 ]
 
 currency_rates_data.each do |rate_data|
